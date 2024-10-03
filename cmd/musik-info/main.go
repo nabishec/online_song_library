@@ -21,7 +21,7 @@ func main() {
 	log.Info("hello world", slog.String("env", cfg.Env))
 	log.Debug("message")
 	// TODO: init storage: postgresql
-	storage, err := postgresql.NewDatabase(cfg.DBDataSourceName)
+	storage, err := postgresql.NewDatabase()
 	if err != nil {
 		log.Error("failed to init storage", slerr.Err(err))
 		os.Exit(1)

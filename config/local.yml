@@ -1,12 +1,4 @@
 env: "local" #local,dev,prod
-db_data_source_name: 
-  protocol: "postgres"
-  user_name: "postgres" 
-  password: "secret"
-  host: "localhost"       
-  port: "5432"
-  dbname: "postgres"   
-  options: "sslmode=disable" 
 http_server:
   address: "localhost:8080"
   timeout: 4s

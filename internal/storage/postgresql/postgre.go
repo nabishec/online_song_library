@@ -2,10 +2,10 @@ package postgresql
 
 import (
 	"fmt"
+	"os"
 
 	_ "github.com/jackc/pgx/v4/stdlib"
 	"github.com/jmoiron/sqlx"
-	"github.com/nabishec/restapi/internal/config"
 	"github.com/nabishec/restapi/internal/storage/postgresql/migration"
 )
 
@@ -24,18 +24,14 @@ type dataSourceName struct {
 	options  string
 }
 
-func NewDatabase(cfg config.DBDataSourceName) (*Database, error) {
+func NewDatabase() (*Database, error) {
 	var database Database
-	dbConnfig := &dataSourceName{
-		protocol: cfg.Protocol,
-		userName: cfg.UserName,
-		password: cfg.Password,
-		host:     cfg.Host,
-		port:     cfg.Port,
-		dbName:   cfg.DBName,
-		options:  cfg.Options,
+	dbConnfig, err := NewDSN()
+	if err != nil {
+		return nil, err
 	}
-	err := database.connectDatabase(dbConnfig)
+
+	err = database.connectDatabase(dbConnfig)
 	if err != nil {
 		return nil, err
 	}
@@ -83,4 +79,46 @@ func (db *Database) CloseDatabase() error {
 		return fmt.Errorf("%s:%w", op, closingError)
 	}
 	return nil
+}
+
+func NewDSN() (*dataSourceName, error) {
+	const op = "internal.storage.postgresql.NewDSN()"
+	dsn := &dataSourceName{}
+
+	dsn.protocol = os.Getenv("DB_PROTOCOL")
+	if dsn.protocol == "" {
+		return nil, fmt.Errorf("%s:%s", op, "DB_PROTOCOL isn't set")
+	}
+
+	dsn.userName = os.Getenv("DB_USER")
+	if dsn.userName == "" {
+		return nil, fmt.Errorf("%s:%s", op, "DB_USER isn't set")
+	}
+
+	dsn.password = os.Getenv("DB_PASSWORD")
+	if dsn.password == "" {
+		return nil, fmt.Errorf("%s:%s", op, "DB_PASSWORD isn't set")
+	}
+
+	dsn.host = os.Getenv("DB_HOST")
+	if dsn.host == "" {
+		return nil, fmt.Errorf("%s:%s", op, "DB_HOST isn't set")
+	}
+
+	dsn.port = os.Getenv("DB_PORT")
+	if dsn.port == "" {
+		return nil, fmt.Errorf("%s:%s", op, "DB_PORT isn't set")
+	}
+
+	dsn.dbName = os.Getenv("DB_NAME")
+	if dsn.dbName == "" {
+		return nil, fmt.Errorf("%s:%s", op, "DB_NAME isn't set")
+	}
+
+	dsn.options = os.Getenv("DB_OPTIONS")
+	if dsn.options == "" {
+		return nil, fmt.Errorf("%s:%s", op, "DB_OPTIONS isn't set")
+	}
+
+	return dsn, nil
 }

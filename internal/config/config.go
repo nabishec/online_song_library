@@ -6,12 +6,13 @@ import (
 	"time"
 
 	"github.com/ilyakaznacheev/cleanenv"
+	"github.com/joho/godotenv"
+	"github.com/nabishec/restapi/internal/lib/logger/slerr"
 )
 
 type Config struct {
-	Env              string `yaml:"env" env-default:"local" env-required:"true"`
-	DBDataSourceName `yaml:"db_data_source_name"`
-	HTTPServer       `yaml:"http_server"`
+	Env        string `yaml:"env" env-default:"local" env-required:"true"`
+	HTTPServer `yaml:"http_server"`
 }
 
 type HTTPServer struct {
@@ -20,21 +21,15 @@ type HTTPServer struct {
 	IdleTimeout time.Duration `yaml:"iddle_timeout" env-default:"60s"`
 }
 
-type DBDataSourceName struct {
-	Protocol string `yaml:"protocol" env-default:"postgres"`
-	UserName string `yaml:"user_name" env-default:"postgres"`
-	Password string `yaml:"password" env-default:"secret"`
-	Host     string `yaml:"host" env-default:"localhost"`
-	Port     string `yaml:"port" env-default:"5432"`
-	DBName   string `yaml:"dbname" env-default:"postgres"`
-	Options  string `yaml:"options" env-default:"sslmode=disable"`
-}
-
 func MustLoad() *Config {
+	err := godotenv.Load("configuration.env")
+	if err != nil {
+		log.Fatal("Mistake of download .env:", slerr.Err(err))
+	}
+
 	configPath := os.Getenv("CONFIG_PATH")
 	if configPath == "" {
 		log.Println("CONFIG_PATH isn't set")
-		configPath = "./config/local.yml"
 	}
 
 	if _, err := os.Stat(configPath); os.IsNotExist(err) {

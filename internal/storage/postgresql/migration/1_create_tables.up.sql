@@ -1,13 +1,13 @@
-CREATE TABLE groups (
-    id  UUID PRIMARY KEY,
-    name TEXT NOT NULL
+CREATE TABLE songs (
+    id  SERIAL PRIMARY KEY,
+    song_name TEXT NOT NULL,
+    group_name TEXT NOT NULL
 );
 
-CREATE TABLE songs (
-    id  UUID PRIMARY KEY,
-    name TEXT NOT NULL,
-    release_date DATE NOT NULL,
+CREATE TABLE songs_detail (
+    id  SERIAL PRIMARY KEY,
+    song_id INT REFERENCES songs(id) ON DELETE CASCADE,
+    release_date TEXT NOT NULL,
     link  TEXT NOT NULL,
-    text TEXT NOT NULL,
-    group_id UUID NOT NULL REFERENCES groups(id)
+    text TEXT NOT NULL
 );

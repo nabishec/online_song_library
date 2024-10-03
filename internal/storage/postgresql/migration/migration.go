@@ -119,7 +119,7 @@ func newMigrationInstance(driver database.Driver) (*migrate.Migrate, error) {
 }
 
 func startMigrationUp(migration *migrate.Migrate) error {
-	const op = "internal.storage.postgresql.migration.startMigrationUp"
+	const op = "internal.storage.postgresql.migration.startMigrationUp()"
 	err := migration.Up()
 	if err != nil && err != migrate.ErrNoChange {
 		return fmt.Errorf("%s:%w(%s)", op, err, "failed to apply migrations")
@@ -134,7 +134,7 @@ func startMigrationUp(migration *migrate.Migrate) error {
 }
 
 func startMigrationDown(migration *migrate.Migrate) error {
-	const op = "internal.storage.postgresql.migration.startMigrationUp"
+	const op = "internal.storage.postgresql.migration.startMigrationDown()"
 	err := migration.Down()
 	if err != nil && err != migrate.ErrNoChange {
 		return fmt.Errorf("%s:%w(%s)", op, err, "failed to apply migrations")
