@@ -1,11 +1,15 @@
 package main
 
 import (
-	"log"
 	"log/slog"
+	"net/http"
 	"os"
 
+	"github.com/go-chi/chi/v5"
+	"github.com/go-chi/chi/v5/middleware"
 	"github.com/nabishec/restapi/internal/config"
+	"github.com/nabishec/restapi/internal/http-server/handlers/post"
+	"github.com/nabishec/restapi/internal/http-server/middleware/logger"
 	"github.com/nabishec/restapi/internal/lib/logger/slerr"
 	"github.com/nabishec/restapi/internal/storage/postgresql"
 )
@@ -14,23 +18,45 @@ func main() {
 	// TODO: init config: cleanenv
 	cfg := config.MustLoad()
 
-	log.Println("config of system:", cfg)
 	// TODO: init logger: slog
-	log := setUpLogger(cfg.Env)
+	log := setupLogger(cfg.Env)
+	log = log.With(slog.String("env", cfg.Env))
 
-	log.Info("hello world", slog.String("env", cfg.Env))
-	log.Debug("message")
+	log.Info("Programm started")
+
 	// TODO: init storage: postgresql
 	storage, err := postgresql.NewDatabase()
 	if err != nil {
 		log.Error("failed to init storage", slerr.Err(err))
 		os.Exit(1)
 	}
-	_ = storage
+	// _ = storage
 
-	// TODO: init router: chi, "chi render"
+	router := chi.NewRouter()
+
+	//middleware
+	router.Use(middleware.RequestID)
+	router.Use(logger.New(log))
+	router.Use(middleware.Recoverer)
+	router.Use(middleware.URLFormat)
+
+	router.Post("/song", post.NewSongHandler(log, storage))
+
+	log.Info("starting server", slog.String("address", cfg.Address))
 
 	//TODO: run server:
+	srv := &http.Server{
+		Addr:         cfg.Address,
+		Handler:      router,
+		ReadTimeout:  cfg.HTTPServer.TimeOut,
+		WriteTimeout: cfg.HTTPServer.TimeOut,
+		IdleTimeout:  cfg.HTTPServer.IdleTimeout,
+	}
+
+	if err := srv.ListenAndServe(); err != nil {
+		log.Error("failed to start server")
+	}
+	log.Error("server stoppped")
 }
 
 const (
@@ -39,7 +65,7 @@ const (
 	envProd  = "prod"
 )
 
-func setUpLogger(env string) *slog.Logger {
+func setupLogger(env string) *slog.Logger {
 	var log *slog.Logger
 	switch env {
 	case envLocal:

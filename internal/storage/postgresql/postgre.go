@@ -52,7 +52,7 @@ func (db *Database) connectDatabase(config *dataSourceName) error {
 	var connectError error
 	db.DB, connectError = sqlx.Connect("pgx", db.dataSourceName)
 	if connectError != nil {
-		return fmt.Errorf("%s,%w", op, connectError)
+		return fmt.Errorf("%s:%w", op, connectError)
 	}
 	return connectError
 }
@@ -66,7 +66,7 @@ func (db *Database) PingDatabase() error {
 
 	var pingError = db.DB.Ping()
 	if pingError != nil {
-		return fmt.Errorf("%s,%w", op, pingError)
+		return fmt.Errorf("%s:%w", op, pingError)
 	}
 	return nil
 }

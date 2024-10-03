@@ -1,2 +1,2 @@
-DROP TABLE IF EXISTS groups;
+DROP TABLE IF EXISTS songs_detail;
 DROP TABLE IF EXISTS songs;

@@ -5,33 +5,33 @@ import (
 	"strconv"
 
 	"github.com/jackc/pgx/v4"
+	"github.com/nabishec/restapi/internal/model"
 	"github.com/nabishec/restapi/internal/storage"
-	"github.com/nabishec/restapi/internal/storage/model"
 )
 
-func (r *Database) AddSong(song *model.Song) (int64, error) {
+func (r *Database) AddSong(song *model.Song) error {
 	const op = "internal.storage.postgresql.AddSong()"
 
 	if _, err := r.foundSongId(song); err == nil {
-		return 0, fmt.Errorf("%s:%w", op, storage.ErrMusikAlreadyExists)
+		return fmt.Errorf("%s:%w", op, storage.ErrMusikAlreadyExists)
 	}
 
-	res, err := r.DB.Exec("INSERT INTO songs (song_name, group_name) VALUES ($1, $2)",
+	_, err := r.DB.Exec("INSERT INTO songs (song_name, group_name) VALUES ($1, $2)",
 		song.SongName, song.GroupName)
 
 	if err != nil {
-		return 0, fmt.Errorf("%s:%w", op, err)
+		return fmt.Errorf("%s:%w", op, err)
 	}
 
 	//if lastinsertid isnt in postgres
 	//err := r.DB.QueryRow("INSERT INTO songs (song_name, group_name) VALUES ($1, $2)  RETURNING id",song.SongName, song.GroupName).Scan(&id)
 
-	id, err := res.LastInsertId()
-	if err != nil {
-		return 0, fmt.Errorf("%s:%w", op, err)
-	}
+	// id, err := res.LastInsertId()
+	// if err != nil {
+	// 	return fmt.Errorf("%s:%w", op, err)
+	// }
 
-	return id, nil
+	return nil
 }
 
 func (r *Database) DeleteSong(song *model.Song) error {
@@ -46,7 +46,7 @@ func (r *Database) DeleteSong(song *model.Song) error {
 	return nil
 }
 
-func (r *Database) PutSongDetail(song *model.Song, detail *model.SongDetail) error {
+func (r *Database) PutSongDetail(song *model.Song, songDetail *model.SongDetail) error {
 	const op = "internal.storage.postgresql.PutSongDetail()"
 
 	songId, err := r.foundSongId(song)
@@ -58,7 +58,7 @@ func (r *Database) PutSongDetail(song *model.Song, detail *model.SongDetail) err
 		return err
 	}
 	_, err = r.DB.Exec("UPDATE songs_detail SET release_date = $1, link = $2, text = $3 WHERE id = $4",
-		detail.ReleaseDate, detail.Link, detail.Text, id)
+		songDetail.ReleaseDate, songDetail.Link, songDetail.Text, id)
 	if err != nil {
 		return fmt.Errorf("%s:%w", op, err)
 	}
@@ -112,6 +112,29 @@ func (r *Database) GetSongText(song *model.Song) (*string, error) {
 		return nil, fmt.Errorf("%s:%w", op, err)
 	}
 	return &text, nil
+}
+
+func (r *Database) AddSongDetail(song *model.Song, songDetail *model.SongDetail) error {
+	const op = "internal.storage.postgresql.AddSongDetail()"
+
+	songId, err := r.foundSongId(song)
+	if err != nil {
+		return err
+	}
+
+	if _, err := r.foundSongDetailId(songId); err == nil {
+		err = r.PutSongDetail(song, songDetail)
+		return err
+	}
+
+	_, err = r.DB.Exec("INSERT INTO songs_detail (release_date, link, text, song_id) VALUES ($1, $2, $3, $4)",
+		songDetail.ReleaseDate, songDetail.Link, songDetail.Text, songId)
+
+	if err != nil {
+		return fmt.Errorf("%s:%w", op, err)
+	}
+
+	return nil
 }
 
 func (r *Database) foundSongId(song *model.Song) (int64, error) {
