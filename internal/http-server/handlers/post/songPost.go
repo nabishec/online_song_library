@@ -8,6 +8,7 @@ import (
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/render"
 
+	externalapi "github.com/nabishec/restapi/external/external-api"
 	"github.com/nabishec/restapi/internal/http-server/handlers/decoder"
 	"github.com/nabishec/restapi/internal/lib/logger/slerr"
 	"github.com/nabishec/restapi/internal/model"
@@ -55,7 +56,24 @@ func SongPost(log *slog.Logger, songAdding SongAddingImp) http.HandlerFunc {
 		}
 
 		log.Info("song added")
-		//TODO: Get to api
+		songDetail, err := externalapi.GetSongDetailsOfExternalApi(song)
+		if err != nil {
+			log.Error("failed to get song details", slerr.Err(err))
+
+			w.WriteHeader(http.StatusMultiStatus) // 207
+			render.JSON(w, r, model.StatusError("failed to get song details"))
+			return
+		}
+		err = songAdding.AddSongDetail(song, songDetail)
+		if err != nil {
+			log.Error("failed to add song details", slerr.Err(err))
+
+			w.WriteHeader(http.StatusMultiStatus) // 207
+			render.JSON(w, r, model.StatusError("failed to add song details"))
+			return
+		}
+
+		log.Info("song added")
 		render.JSON(w, r, model.OK())
 	}
 }

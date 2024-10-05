@@ -43,11 +43,11 @@ func main() {
 	router.Use(middleware.Recoverer)
 	router.Use(middleware.URLFormat)
 
-	router.Post("/musiklibrary", post.SongPost(log, storage))
-	router.Get("/musiklibrary", get.SongsLibrary(log, storage))
-	router.Delete("/musiklibrary", deletion.SongDelete(log, storage))
-	router.Get("/musiktext", get.TextSongGet(log, storage))
-	router.Put("musiklibrary", put.SongDetail(log, storage))
+	router.Post("/api/v1/musiklibrary/song", post.SongPost(log, storage))
+	router.Get("/api/v1/musiklibrary", get.SongsLibrary(log, storage))
+	router.Delete("/api/v1/musiklibrary/song", deletion.SongDelete(log, storage))
+	router.Get("/api/v1/musiktext/song", get.TextSongGet(log, storage))
+	router.Put("/api/v1/musiklibrary/song", put.SongDetail(log, storage))
 
 	log.Info("starting server", slog.String("address", cfg.Address))
 
@@ -63,7 +63,7 @@ func main() {
 	if err := srv.ListenAndServe(); err != nil {
 		log.Error("failed to start server", slerr.Err(err))
 	}
-	log.Error("server stoppped")
+	log.Error("server stoped")
 }
 
 const (
