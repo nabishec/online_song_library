@@ -2,9 +2,11 @@ package postgresql
 
 import (
 	"fmt"
+	"log/slog"
 	"strconv"
 
 	"github.com/jackc/pgx/v4"
+	"github.com/nabishec/restapi/internal/lib/logger/slerr"
 	"github.com/nabishec/restapi/internal/model"
 	"github.com/nabishec/restapi/internal/storage"
 )
@@ -13,7 +15,7 @@ func (r *Database) AddSong(song *model.Song) error {
 	const op = "internal.storage.postgresql.AddSong()"
 
 	if _, err := r.foundSongId(song); err == nil {
-		return fmt.Errorf("%s:%w", op, storage.ErrMusikAlreadyExists)
+		return fmt.Errorf("%s:%w", op, storage.ErrSongAlreadyExists)
 	}
 
 	_, err := r.DB.Exec("INSERT INTO songs (song_name, group_name) VALUES ($1, $2)",
@@ -23,26 +25,28 @@ func (r *Database) AddSong(song *model.Song) error {
 		return fmt.Errorf("%s:%w", op, err)
 	}
 
-	//if lastinsertid isnt in postgres
-	//err := r.DB.QueryRow("INSERT INTO songs (song_name, group_name) VALUES ($1, $2)  RETURNING id",song.SongName, song.GroupName).Scan(&id)
-
-	// id, err := res.LastInsertId()
-	// if err != nil {
-	// 	return fmt.Errorf("%s:%w", op, err)
-	// }
-
 	return nil
 }
 
-func (r *Database) DeleteSong(song *model.Song) error {
+func (r *Database) DeleteSong(song *model.Song, log *slog.Logger) error {
 	const op = "internal.storage.postgresql.DeleteSong()"
 
-	_, err := r.DB.Exec("DELETE FROM songs WHERE song_name = $1 AND group_name = $2",
+	res, err := r.DB.Exec("DELETE FROM songs WHERE song_name = $1 AND group_name = $2",
 		song.SongName, song.GroupName)
 
 	if err != nil {
 		return fmt.Errorf("%s:%w", op, err)
 	}
+
+	rowsAffected, err := res.RowsAffected()
+	if err != nil {
+		log.Debug(op, ":not possible verify corectness of delete: ", slerr.Err(err))
+	}
+
+	if rowsAffected == 0 {
+		return fmt.Errorf("%s:%w", op, storage.ErrSongNotFound)
+	}
+
 	return nil
 }
 
@@ -55,7 +59,7 @@ func (r *Database) PutSongDetail(song *model.Song, songDetail *model.SongDetail)
 	}
 	id, err := r.foundSongDetailId(songId)
 	if err != nil {
-		return err
+		return fmt.Errorf("%s:%w", op, storage.ErrSongDetailNotFound)
 	}
 	_, err = r.DB.Exec("UPDATE songs_detail SET release_date = $1, link = $2, text = $3 WHERE id = $4",
 		songDetail.ReleaseDate, songDetail.Link, songDetail.Text, id)
@@ -65,7 +69,7 @@ func (r *Database) PutSongDetail(song *model.Song, songDetail *model.SongDetail)
 	return nil
 }
 
-func (r *Database) GetMusicLibrary(song *model.Song, limit int, offset int) ([]*model.Song, error) {
+func (r *Database) GetSongLibrary(songName string, groupName string, limit int64, offset int64, log *slog.Logger) ([]*model.Song, error) {
 	const op = "internal.storage.postgresql.GetMusicLibrary()"
 
 	var library []*model.Song
@@ -73,18 +77,20 @@ func (r *Database) GetMusicLibrary(song *model.Song, limit int, offset int) ([]*
 	query := "SELECT song_name,group_name FROM songs WHERE TRUE"
 	args := []interface{}{}
 
-	if song.SongName != "" {
+	if songName != "" {
 		query += " AND song_name = $" + strconv.Itoa(len(args)+1)
-		args = append(args, song.SongName)
+		args = append(args, songName)
 	}
-	if song.GroupName != "" {
+	if groupName != "" {
 		query += " AND group_name = $" + strconv.Itoa(len(args)+1)
-		args = append(args, song.GroupName)
+		args = append(args, groupName)
 	}
 	query += " LIMIT $" + strconv.Itoa(len(args)+1)
 	args = append(args, limit)
 	query += " OFFSET $" + strconv.Itoa(len(args)+1)
 	args = append(args, offset)
+
+	log.Debug("Executing query", slog.String("query", query), slog.Any("args", args))
 
 	err := r.DB.Select(&library, query, args...)
 	if err != nil {
@@ -146,7 +152,7 @@ func (r *Database) foundSongId(song *model.Song) (int64, error) {
 
 	if err != nil {
 		if err == pgx.ErrNoRows {
-			return 0, fmt.Errorf("%s:%w", op, storage.ErrMusikNotFound)
+			return 0, fmt.Errorf("%s:%w", op, storage.ErrSongNotFound)
 		}
 		return 0, fmt.Errorf("%s:%w", op, err)
 	}
@@ -163,10 +169,24 @@ func (r *Database) foundSongDetailId(songId int64) (int64, error) {
 
 	if err != nil {
 		if err == pgx.ErrNoRows {
-			return 0, fmt.Errorf("%s:%w", op, storage.ErrMusikDetailNotFound)
+			return 0, fmt.Errorf("%s:%w", op, storage.ErrSongDetailNotFound)
 		}
 		return 0, fmt.Errorf("%s:%w", op, err)
 	}
 
 	return SongDetailId, nil
+}
+
+func (r *Database) CountNumberOfSong(song string, group string) (int64, error) {
+	op := "internal.storage.postgresql.CountNumberOfSong()"
+	var count int64
+
+	err := r.DB.QueryRow("SELECT COUNT(*) FROM songs WHERE ($1 IS NULL OR song_name = $1) AND ($2 IS NULL OR group_name = $2)",
+		song, group).Scan(&count)
+
+	if err != nil {
+		return 0, fmt.Errorf("%s:%w", op, err)
+	}
+
+	return count, nil
 }

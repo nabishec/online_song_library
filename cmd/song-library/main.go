@@ -8,7 +8,10 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/nabishec/restapi/internal/config"
+	"github.com/nabishec/restapi/internal/http-server/handlers/deletion"
+	"github.com/nabishec/restapi/internal/http-server/handlers/get"
 	"github.com/nabishec/restapi/internal/http-server/handlers/post"
+	"github.com/nabishec/restapi/internal/http-server/handlers/put"
 	"github.com/nabishec/restapi/internal/http-server/middleware/logger"
 	"github.com/nabishec/restapi/internal/lib/logger/slerr"
 	"github.com/nabishec/restapi/internal/storage/postgresql"
@@ -40,7 +43,11 @@ func main() {
 	router.Use(middleware.Recoverer)
 	router.Use(middleware.URLFormat)
 
-	router.Post("/song", post.NewSongHandler(log, storage))
+	router.Post("/musiklibrary", post.SongPost(log, storage))
+	router.Get("/musiklibrary", get.SongsLibrary(log, storage))
+	router.Delete("/musiklibrary", deletion.SongDelete(log, storage))
+	router.Get("/musiktext", get.TextSongGet(log, storage))
+	router.Put("musiklibrary", put.SongDetail(log, storage))
 
 	log.Info("starting server", slog.String("address", cfg.Address))
 
@@ -54,7 +61,7 @@ func main() {
 	}
 
 	if err := srv.ListenAndServe(); err != nil {
-		log.Error("failed to start server")
+		log.Error("failed to start server", slerr.Err(err))
 	}
 	log.Error("server stoppped")
 }

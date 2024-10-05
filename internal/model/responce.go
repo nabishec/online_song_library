@@ -1,25 +1,40 @@
 package model
 
 type Response struct {
-	Status       string          `json:"status"`
-	Error        string          `json:"error,omitempty"`
-	MusikLibrary SongsConnection `json:"musikLibrary,omitempty"`
-	SongText     string
+	Status       string           `json:"status"`
+	Error        string           `json:"error,omitempty"`
+	SongsLibrary *SongsConnection `json:"songLibrary,omitempty"`
+	SongText     *TextConnection  `json:"songText,omitempty"`
 }
 
 type SongsConnection struct {
-	Edges    []*SongEdge `json:"edge"`
-	PageInfo *PageInfo   `json:"pageInfo"`
+	Edges    []*SongEdge      `json:"edges"`
+	PageInfo *LibraryPageInfo `json:"pageInfo"`
 }
 
-type PageInfo struct {
-	EndCursor   *string `json:"endCursor,omitempty"`
-	HasNextPage bool    `json:"hasNextPage"`
+type LibraryPageInfo struct {
+	EndCursor   *int64 `json:"endCursor,omitempty"`
+	HasNextPage bool   `json:"hasNextPage"`
 }
 
 type SongEdge struct {
-	Node   *Song  `json:"node"`
-	Cursor string `json:"cursor"`
+	Node   *Song `json:"node"`
+	Cursor int64 `json:"cursor"`
+}
+
+type TextConnection struct {
+	Edges    []*CoupletEdge `json:"edges"`
+	PageInfo *TextPageInfo  `json:"pageInfo"`
+}
+
+type TextPageInfo struct {
+	EndCursor   *int `json:"endCursor,omitempty"`
+	HasNextPage bool `json:"hasNextPage"`
+}
+
+type CoupletEdge struct {
+	Node   *string `json:"node"`
+	Cursor int     `json:"cursor"`
 }
 
 func OK() Response {
