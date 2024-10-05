@@ -15,6 +15,19 @@ import (
 	"github.com/nabishec/restapi/internal/storage"
 )
 
+// @Summary      Add Song
+// @Tags         songslibrary/song
+// @Description  Add a new song to the library and fetch its details from an external API.
+// @Accept       json
+// @Produce      json
+// @Param        songData  body      model.Song       true  "Song Data"      Example: {"songName": "Song1", "groupName": "Group1", "releaseDate": "2022-01-01"}
+// @Success      200       {object}  model.Response    "OK"
+// @Failure      400       {object}  model.Error       "Bad request"
+// @Failure      409       {object}  model.Error       "Song already exists"
+// @Failure      500       {object}  model.Error       "Failed to add song"
+// @Failure      207       {object}  model.Error       "Failed to get song details"
+// @Router       /songslibrary/song [post]
+
 type SongAddingImp interface {
 	AddSong(song *model.Song) error
 	AddSongDetail(song *model.Song, songDetail *model.SongDetail) error

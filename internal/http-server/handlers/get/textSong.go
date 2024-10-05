@@ -14,6 +14,20 @@ import (
 	"github.com/nabishec/restapi/internal/storage"
 )
 
+// @Summary      Get Song Text
+// @Tags         songslibrary/song
+// @Description  Retrieve the text of a song with pagination options.
+// @Produce      json
+// @Param        song    query     string  true  "Name of the song"   Example: "Song1"
+// @Param        group   query     string  true  "Name of the group"  Example: "Group1"
+// @Param        first   query     int     false "Number of items to return"  Example: 2
+// @Param        after   query     int     false "Offset from which to return items" Example: 1
+// @Success      200     {object}  model.Response    "OK"
+// @Failure      400     {object}  model.Error       "Bad request"
+// @Failure      404     {object}  model.Error       "Song not found"
+// @Failure      500     {object}  model.Error       "Failed to get song text"
+// @Router       /songslibrary/song [get]
+
 type GettingTesxtSongImp interface {
 	GetSongText(song *model.Song) (*string, error)
 }

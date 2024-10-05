@@ -15,7 +15,18 @@ import (
 	"github.com/nabishec/restapi/internal/http-server/middleware/logger"
 	"github.com/nabishec/restapi/internal/lib/logger/slerr"
 	"github.com/nabishec/restapi/internal/storage/postgresql"
+
+	_ "github.com/nabishec/restapi/docs"
+	httpSwagger "github.com/swaggo/http-swagger"
 )
+
+// @title Song Library
+// @version 1.0
+// @description API Server for SongLibrary
+// @contact.email nabishec@mail.ru
+
+// @host localhost:8080
+// @BasePath /api/v1
 
 func main() {
 	// TODO: init config: cleanenv
@@ -43,11 +54,12 @@ func main() {
 	router.Use(middleware.Recoverer)
 	router.Use(middleware.URLFormat)
 
-	router.Post("/api/v1/musiklibrary/song", post.SongPost(log, storage))
-	router.Get("/api/v1/musiklibrary", get.SongsLibrary(log, storage))
-	router.Delete("/api/v1/musiklibrary/song", deletion.SongDelete(log, storage))
-	router.Get("/api/v1/musiktext/song", get.TextSongGet(log, storage))
-	router.Put("/api/v1/musiklibrary/song", put.SongDetail(log, storage))
+	router.Post("/api/v1/songslibrary/song", post.SongPost(log, storage))
+	router.Get("/api/v1/songslibrary", get.SongsLibrary(log, storage))
+	router.Delete("/api/v1/songslibrary/song", deletion.SongDelete(log, storage))
+	router.Get("/api/v1/songslibrary/song", get.TextSongGet(log, storage))
+	router.Put("/api/v1/songslibrary/song", put.SongDetail(log, storage))
+	router.Get("/swagger/*", httpSwagger.WrapHandler)
 
 	log.Info("starting server", slog.String("address", cfg.Address))
 

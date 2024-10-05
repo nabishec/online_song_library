@@ -12,11 +12,23 @@ import (
 	"github.com/go-playground/validator/v10"
 	"github.com/nabishec/restapi/internal/lib/logger/slerr"
 	"github.com/nabishec/restapi/internal/model"
-	"github.com/nabishec/restapi/internal/storage"
 )
+
+// @Summary      Add Song Detail
+// @Tags         songslibrary/song
+// @Description  Add the details of a new song to the library.
+// @Accept       json
+// @Produce      json
+// @Param        dataSong    body      model.Song       true  "Song Data"      Example: {"songName": "Song1", "groupName": "Group1", "releaseDate": "2022-01-01"}
+// @Param        songDetail  body      model.SongDetail true  "New Song Detail" Example: {"genre": "Rock", "duration": "03:45", "album": "Album1"}
+// @Success      200         {object}  model.Response    "OK"
+// @Failure      400         {object}  model.Error       "Bad request"
+// @Failure      500         {object}  model.Error       "Failed to add song detail"
+// @Router       /songslibrary/song [put]
 
 type SongPutImp interface {
 	PutSongDetail(song *model.Song, songDetail *model.SongDetail) error
+	AddSongDetail(song *model.Song, songDetail *model.SongDetail) error
 }
 
 type Request struct {
@@ -59,21 +71,13 @@ func SongDetail(log *slog.Logger, songPutImp SongPutImp) http.HandlerFunc {
 			return
 		}
 
-		err = songPutImp.PutSongDetail(&req.SongData, &req.NewSongDetail)
-		if errors.Is(err, storage.ErrSongDetailNotFound) {
-			log.Info("song detail dosn't exist", slog.String("song:", req.SongData.SongName+
-				":"+req.SongData.GroupName))
-
-			w.WriteHeader(http.StatusNotFound) // 404
-			render.JSON(w, r, model.StatusError("song detail doesn't exist"))
-			return
-		}
+		err = songPutImp.AddSongDetail(&req.SongData, &req.NewSongDetail)
 		if err != nil {
-			log.Error("failed add song detail", slerr.Err(err))
-
+			log.Error("failed to add song detail", slerr.Err(err))
 			w.WriteHeader(http.StatusInternalServerError) // 500
-			render.JSON(w, r, model.StatusError("failed  add song detail"))
+			render.JSON(w, r, model.StatusError("failed to add song detail"))
 			return
+
 		}
 
 		log.Info("song detail changed")
