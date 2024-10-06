@@ -16,7 +16,430 @@ const docTemplate = `{
     },
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
-    "paths": {}
+    "paths": {
+        "/songslibrary": {
+            "get": {
+                "description": "Retrieve the song library with pagination options.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "songslibrary/song"
+                ],
+                "summary": "Get Song Library",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Name of the song",
+                        "name": "song",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Name of the group",
+                        "name": "group",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Number of items to return",
+                        "name": "first",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Offset from which to return items",
+                        "name": "after",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/model.Response"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request",
+                        "schema": {
+                            "$ref": "#/definitions/model.Response"
+                        }
+                    },
+                    "404": {
+                        "description": "No songs matching the request",
+                        "schema": {
+                            "$ref": "#/definitions/model.Response"
+                        }
+                    },
+                    "500": {
+                        "description": "Failed to get song library",
+                        "schema": {
+                            "$ref": "#/definitions/model.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/songslibrary/song": {
+            "get": {
+                "description": "Retrieve the text of a song with pagination options.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "songslibrary/song"
+                ],
+                "summary": "Get Song Text",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Name of the song",
+                        "name": "song",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Name of the group",
+                        "name": "group",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Number of items to return",
+                        "name": "first",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Offset from which to return items",
+                        "name": "after",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/model.Response"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request",
+                        "schema": {
+                            "$ref": "#/definitions/model.Response"
+                        }
+                    },
+                    "404": {
+                        "description": "Song not found",
+                        "schema": {
+                            "$ref": "#/definitions/model.Response"
+                        }
+                    },
+                    "500": {
+                        "description": "Failed to get song text",
+                        "schema": {
+                            "$ref": "#/definitions/model.Response"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "description": "Add the details of a new song to the library.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "songslibrary/song"
+                ],
+                "summary": "Add Song Detail",
+                "parameters": [
+                    {
+                        "description": "Request with song data and details",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/put.Request"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/model.Response"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request",
+                        "schema": {
+                            "$ref": "#/definitions/model.Response"
+                        }
+                    },
+                    "500": {
+                        "description": "Failed to add song detail",
+                        "schema": {
+                            "$ref": "#/definitions/model.Response"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "description": "Add a new song to the library and fetch its details from an external API.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "songslibrary/song"
+                ],
+                "summary": "Add Song",
+                "parameters": [
+                    {
+                        "description": "Song Data",
+                        "name": "songData",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/model.Song"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/model.Response"
+                        }
+                    },
+                    "207": {
+                        "description": "Failed to get song details",
+                        "schema": {
+                            "$ref": "#/definitions/model.Response"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request",
+                        "schema": {
+                            "$ref": "#/definitions/model.Response"
+                        }
+                    },
+                    "409": {
+                        "description": "Song already exists",
+                        "schema": {
+                            "$ref": "#/definitions/model.Response"
+                        }
+                    },
+                    "500": {
+                        "description": "Failed to add song",
+                        "schema": {
+                            "$ref": "#/definitions/model.Response"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "description": "Delete a song from the library by song name and group name.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "songdelete/song"
+                ],
+                "summary": "Delete a Song",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Name of the song",
+                        "name": "song",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Name of the group",
+                        "name": "group",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/model.Response"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request",
+                        "schema": {
+                            "$ref": "#/definitions/model.Response"
+                        }
+                    },
+                    "404": {
+                        "description": "Song doesn't exist",
+                        "schema": {
+                            "$ref": "#/definitions/model.Response"
+                        }
+                    },
+                    "500": {
+                        "description": "Failed deletion of song",
+                        "schema": {
+                            "$ref": "#/definitions/model.Response"
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "model.CoupletEdge": {
+            "type": "object",
+            "properties": {
+                "cursor": {
+                    "type": "integer"
+                },
+                "node": {
+                    "type": "string"
+                }
+            }
+        },
+        "model.LibraryPageInfo": {
+            "type": "object",
+            "properties": {
+                "endCursor": {
+                    "type": "integer"
+                },
+                "hasNextPage": {
+                    "type": "boolean"
+                }
+            }
+        },
+        "model.Response": {
+            "type": "object",
+            "properties": {
+                "error": {
+                    "type": "string"
+                },
+                "songLibrary": {
+                    "$ref": "#/definitions/model.SongsConnection"
+                },
+                "songText": {
+                    "$ref": "#/definitions/model.TextConnection"
+                },
+                "status": {
+                    "type": "string"
+                }
+            }
+        },
+        "model.Song": {
+            "type": "object",
+            "required": [
+                "group",
+                "song"
+            ],
+            "properties": {
+                "group": {
+                    "type": "string"
+                },
+                "song": {
+                    "type": "string"
+                }
+            }
+        },
+        "model.SongDetail": {
+            "type": "object",
+            "required": [
+                "link",
+                "releaseDate",
+                "text"
+            ],
+            "properties": {
+                "link": {
+                    "type": "string"
+                },
+                "releaseDate": {
+                    "type": "string"
+                },
+                "text": {
+                    "type": "string"
+                }
+            }
+        },
+        "model.SongEdge": {
+            "type": "object",
+            "properties": {
+                "cursor": {
+                    "type": "integer"
+                },
+                "node": {
+                    "$ref": "#/definitions/model.Song"
+                }
+            }
+        },
+        "model.SongsConnection": {
+            "type": "object",
+            "properties": {
+                "edges": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/model.SongEdge"
+                    }
+                },
+                "pageInfo": {
+                    "$ref": "#/definitions/model.LibraryPageInfo"
+                }
+            }
+        },
+        "model.TextConnection": {
+            "type": "object",
+            "properties": {
+                "edges": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/model.CoupletEdge"
+                    }
+                },
+                "pageInfo": {
+                    "$ref": "#/definitions/model.TextPageInfo"
+                }
+            }
+        },
+        "model.TextPageInfo": {
+            "type": "object",
+            "properties": {
+                "endCursor": {
+                    "type": "integer"
+                },
+                "hasNextPage": {
+                    "type": "boolean"
+                }
+            }
+        },
+        "put.Request": {
+            "type": "object",
+            "required": [
+                "dataSong",
+                "songDetail"
+            ],
+            "properties": {
+                "dataSong": {
+                    "$ref": "#/definitions/model.Song"
+                },
+                "songDetail": {
+                    "$ref": "#/definitions/model.SongDetail"
+                }
+            }
+        }
+    }
 }`
 
 // SwaggerInfo holds exported Swagger Info so clients can modify it

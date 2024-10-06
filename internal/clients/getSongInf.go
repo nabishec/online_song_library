@@ -1,4 +1,4 @@
-package externalapi
+package clients
 
 import (
 	"encoding/json"

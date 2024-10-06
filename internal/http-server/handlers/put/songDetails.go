@@ -14,18 +14,6 @@ import (
 	"github.com/nabishec/restapi/internal/model"
 )
 
-// @Summary      Add Song Detail
-// @Tags         songslibrary/song
-// @Description  Add the details of a new song to the library.
-// @Accept       json
-// @Produce      json
-// @Param        dataSong    body      model.Song       true  "Song Data"      Example: {"songName": "Song1", "groupName": "Group1", "releaseDate": "2022-01-01"}
-// @Param        songDetail  body      model.SongDetail true  "New Song Detail" Example: {"genre": "Rock", "duration": "03:45", "album": "Album1"}
-// @Success      200         {object}  model.Response    "OK"
-// @Failure      400         {object}  model.Error       "Bad request"
-// @Failure      500         {object}  model.Error       "Failed to add song detail"
-// @Router       /songslibrary/song [put]
-
 type SongPutImp interface {
 	PutSongDetail(song *model.Song, songDetail *model.SongDetail) error
 	AddSongDetail(song *model.Song, songDetail *model.SongDetail) error
@@ -36,6 +24,16 @@ type Request struct {
 	NewSongDetail model.SongDetail `json:"songDetail" validate:"required"`
 }
 
+// @Summary      Add Song Detail
+// @Tags         songslibrary/song
+// @Description  Add the details of a new song to the library.
+// @Accept       json
+// @Produce      json
+// @Param        request body      Request true  "Request with song data and details" Example: {"dataSong": {"song": "Song1", "group": "Group1"}, "songDetail": {"releaseDate": "2022-01-01", "link": "http://example.com", "text": "This is a great song"}}
+// @Success      200         {object}  model.Response    "OK"
+// @Failure      400         {object}  model.Response       "Bad request"
+// @Failure      500         {object}  model.Response       "Failed to add song detail"
+// @Router       /songslibrary/song [put]
 func SongDetail(log *slog.Logger, songPutImp SongPutImp) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		const op = "handlers.put.songDetail()"

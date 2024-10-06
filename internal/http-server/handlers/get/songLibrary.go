@@ -11,6 +11,11 @@ import (
 	"github.com/nabishec/restapi/internal/model"
 )
 
+type SongLibraryImp interface {
+	GetSongLibrary(songName string, groupName string, limit int64, offset int64, log *slog.Logger) ([]*model.Song, error)
+	CountNumberOfSong(song string, group string) (int64, error)
+}
+
 // @Summary      Get Song Library
 // @Tags         songslibrary/song
 // @Description  Retrieve the song library with pagination options.
@@ -20,16 +25,10 @@ import (
 // @Param        first   query     int64   false "Number of items to return"  Example: 10
 // @Param        after   query     int64   false "Offset from which to return items" Example: 0
 // @Success      200     {object}  model.Response      "OK"
-// @Failure      400     {object}  model.Error         "Bad request"
-// @Failure      404     {object}  model.Error         "No songs matching the request"
-// @Failure      500     {object}  model.Error         "Failed to get song library"
+// @Failure      400     {object}  model.Response         "Bad request"
+// @Failure      404     {object}  model.Response         "No songs matching the request"
+// @Failure      500     {object}  model.Response         "Failed to get song library"
 // @Router       /songslibrary [get]
-
-type SongLibraryImp interface {
-	GetSongLibrary(songName string, groupName string, limit int64, offset int64, log *slog.Logger) ([]*model.Song, error)
-	CountNumberOfSong(song string, group string) (int64, error)
-}
-
 func SongsLibrary(log *slog.Logger, songLibraryImp SongLibraryImp) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		const op = "handlers.put.SongsLibrary()"

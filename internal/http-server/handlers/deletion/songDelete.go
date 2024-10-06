@@ -12,22 +12,21 @@ import (
 	"github.com/nabishec/restapi/internal/storage"
 )
 
+type SongDeletingImp interface {
+	DeleteSong(song *model.Song, log *slog.Logger) error
+}
+
 // @Summary      Delete a Song
 // @Tags         songdelete/song
 // @Description  Delete a song from the library by song name and group name.
 // @Produce      json
 // @Param        song    query     string  true  "Name of the song"   Example: "Song1"
 // @Param        group   query     string  true  "Name of the group"  Example: "Group1"
-// @Success      200     {object}  model.Status  "OK"
-// @Failure      400     {object}  model.Error    "Bad request"
-// @Failure      404     {object}  model.Error    "Song doesn't exist"
-// @Failure      500     {object}  model.Error    "Failed deletion of song"
+// @Success      200     {object}  model.Response  "OK"
+// @Failure      400     {object}  model.Response    "Bad request"
+// @Failure      404     {object}  model.Response    "Song doesn't exist"
+// @Failure      500     {object}  model.Response    "Failed deletion of song"
 // @Router       /songslibrary/song [delete]
-
-type SongDeletingImp interface {
-	DeleteSong(song *model.Song, log *slog.Logger) error
-}
-
 func SongDelete(log *slog.Logger, songDeleting SongDeletingImp) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		const op = "handlers.delete.songDelete.SongDelete()"

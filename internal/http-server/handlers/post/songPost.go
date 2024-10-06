@@ -8,12 +8,17 @@ import (
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/render"
 
-	externalapi "github.com/nabishec/restapi/external/external-api"
+	"github.com/nabishec/restapi/internal/clients"
 	"github.com/nabishec/restapi/internal/http-server/handlers/decoder"
 	"github.com/nabishec/restapi/internal/lib/logger/slerr"
 	"github.com/nabishec/restapi/internal/model"
 	"github.com/nabishec/restapi/internal/storage"
 )
+
+type SongAddingImp interface {
+	AddSong(song *model.Song) error
+	AddSongDetail(song *model.Song, songDetail *model.SongDetail) error
+}
 
 // @Summary      Add Song
 // @Tags         songslibrary/song
@@ -22,17 +27,11 @@ import (
 // @Produce      json
 // @Param        songData  body      model.Song       true  "Song Data"      Example: {"songName": "Song1", "groupName": "Group1", "releaseDate": "2022-01-01"}
 // @Success      200       {object}  model.Response    "OK"
-// @Failure      400       {object}  model.Error       "Bad request"
-// @Failure      409       {object}  model.Error       "Song already exists"
-// @Failure      500       {object}  model.Error       "Failed to add song"
-// @Failure      207       {object}  model.Error       "Failed to get song details"
+// @Failure      400       {object}  model.Response       "Bad request"
+// @Failure      409       {object}  model.Response       "Song already exists"
+// @Failure      500       {object}  model.Response       "Failed to add song"
+// @Failure      207       {object}  model.Response       "Failed to get song details"
 // @Router       /songslibrary/song [post]
-
-type SongAddingImp interface {
-	AddSong(song *model.Song) error
-	AddSongDetail(song *model.Song, songDetail *model.SongDetail) error
-}
-
 func SongPost(log *slog.Logger, songAdding SongAddingImp) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		const op = "handlers.post.addsong.SongPost()"
@@ -69,7 +68,7 @@ func SongPost(log *slog.Logger, songAdding SongAddingImp) http.HandlerFunc {
 		}
 
 		log.Info("song added")
-		songDetail, err := externalapi.GetSongDetailsOfExternalApi(song)
+		songDetail, err := clients.GetSongDetailsOfExternalApi(song)
 		if err != nil {
 			log.Error("failed to get song details", slerr.Err(err))
 

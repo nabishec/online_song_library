@@ -14,6 +14,10 @@ import (
 	"github.com/nabishec/restapi/internal/storage"
 )
 
+type GettingTesxtSongImp interface {
+	GetSongText(song *model.Song) (*string, error)
+}
+
 // @Summary      Get Song Text
 // @Tags         songslibrary/song
 // @Description  Retrieve the text of a song with pagination options.
@@ -23,15 +27,10 @@ import (
 // @Param        first   query     int     false "Number of items to return"  Example: 2
 // @Param        after   query     int     false "Offset from which to return items" Example: 1
 // @Success      200     {object}  model.Response    "OK"
-// @Failure      400     {object}  model.Error       "Bad request"
-// @Failure      404     {object}  model.Error       "Song not found"
-// @Failure      500     {object}  model.Error       "Failed to get song text"
+// @Failure      400     {object}  model.Response       "Bad request"
+// @Failure      404     {object}  model.Response       "Song not found"
+// @Failure      500     {object}  model.Response       "Failed to get song text"
 // @Router       /songslibrary/song [get]
-
-type GettingTesxtSongImp interface {
-	GetSongText(song *model.Song) (*string, error)
-}
-
 func TextSongGet(log *slog.Logger, gettingTesxtSongImp GettingTesxtSongImp) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		const op = "handlers.get.textSong.TextSongGet()"
@@ -71,7 +70,7 @@ func TextSongGet(log *slog.Logger, gettingTesxtSongImp GettingTesxtSongImp) http
 
 		var after int
 		if afterStr == "" {
-			after = 1
+			after = 0
 		} else {
 			after, err = strconv.Atoi(afterStr)
 			if err != nil {
@@ -118,12 +117,12 @@ func pagination(text *string, first int, after int) model.Response {
 
 	couplets := strings.Split(*text, "\n\n")
 
-	startInd := after - 1
+	startInd := after
 	endIndex := startInd + first
 
 	var endCursor int
 
-	for i, length := startInd, len(couplets); i < length || i < endIndex; i++ {
+	for i, length := startInd, len(couplets); i < length && i < endIndex; i++ {
 		edges = append(edges, &model.CoupletEdge{
 			Node:   &couplets[i],
 			Cursor: i + 1,
